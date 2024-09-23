@@ -1,7 +1,7 @@
-import { Transaction } from "../types/transaction";
+import { Expense } from "../types/expense";
 
 type TotalBalanceProps = {
-  latestTrans: Transaction;
+  latestTrans: Expense;
 };
 
 export default function TotalBalance({ latestTrans }: TotalBalanceProps) {

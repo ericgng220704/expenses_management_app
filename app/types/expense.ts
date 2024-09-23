@@ -1,11 +1,13 @@
 export interface Expense {
-  _id?: string;
+  id?: string;
   title: string;
-  category: string;
-  categoryInfo: {
-    color: string;
+  category: {
+    name: string;
     icon: string;
+    color: string;
   };
+  balanceBefore: number;
+  balanceAfter: number;
   amount: number;
   date: string;
   note: string;

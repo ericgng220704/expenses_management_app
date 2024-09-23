@@ -10,12 +10,13 @@ import {
   faCartShopping,
   faTheaterMasks,
   faTags,
-  // Add more FontAwesome icons here as needed
+  IconDefinition, // Import IconDefinition for proper typing
 } from "@fortawesome/free-solid-svg-icons";
 import { Category } from "../types/category";
 import { colorMap } from "../types/colorMap";
 
-const iconMap: Record<string, any> = {
+// Define the iconMap with the correct type using IconDefinition
+const iconMap: Record<string, IconDefinition> = {
   faHouse: faHouse,
   faReceipt: faReceipt,
   faUtensils: faUtensils,

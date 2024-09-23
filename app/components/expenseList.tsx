@@ -16,9 +16,9 @@ export default function ExpenseList({
     <ul className="space-y-4">
       {expenses.map((expense) => (
         <li
-          key={expense._id}
+          key={expense.id}
           className={`flex justify-between items-center p-4 ${
-            colorMap[expense.categoryInfo.color] || "bg-white"
+            colorMap[expense.category.color] || "bg-white"
           } rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-stone-200`}
         >
           <div className="flex items-center gap-4">

@@ -1,0 +1,30 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Expense {
+  id             Int       @id @default(autoincrement())
+  title          String
+  category       Category @relation(fields: [category_id], references: [id])
+  category_id    Int
+  amount         Int
+  balanceBefore  Int
+  balanceAfter   Int
+  date           DateTime
+  note           String?
+  payer          String
+  created_at     DateTime @default(now())
+}
+
+model Category {
+  id       Int      @id @default(autoincrement())
+  name     String
+  icon     String
+  color    String
+  expenses Expense[]
+}

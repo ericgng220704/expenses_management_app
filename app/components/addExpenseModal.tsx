@@ -13,7 +13,6 @@ import {
 } from "@headlessui/react";
 import { Category } from "../types/category";
 import { Expense } from "../types/expense";
-import { Transaction } from "../types/transaction";
 
 type AddExpenseModalProps = {
   isOpen: boolean;
@@ -21,7 +20,7 @@ type AddExpenseModalProps = {
   categories: Category[];
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
   setLatestTransaction: React.Dispatch<
-    React.SetStateAction<Transaction | undefined>
+    React.SetStateAction<Expense | undefined>
   >;
 };
 
@@ -33,7 +32,7 @@ export default function AddExpenseModal({
   setLatestTransaction,
 }: AddExpenseModalProps) {
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Housing");
+  const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
@@ -45,7 +44,7 @@ export default function AddExpenseModal({
 
     setSubmitDisable(true);
 
-    const newExpense = {
+    const newExpenseData = {
       title,
       category,
       amount: parseFloat(amount) * 100,
@@ -54,20 +53,24 @@ export default function AddExpenseModal({
       payer,
     };
 
+    console.log(newExpenseData);
+
     try {
       const response = await fetch("/api/expenses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newExpense),
+        body: JSON.stringify(newExpenseData),
       });
 
       if (!response.ok) {
         throw new Error("Something went wrong");
       }
 
-      const { expenses } = await response.json();
+      const { latestExpense, expenses } = await response.json();
+
+      setLatestTransaction(latestExpense);
 
       alert("Expense added successfully!");
       setExpenses(expenses);
@@ -75,6 +78,7 @@ export default function AddExpenseModal({
     } catch (error) {
       console.error(error);
       alert("Error adding expense");
+      setSubmitDisable(false);
     }
   };
 
@@ -148,7 +152,7 @@ export default function AddExpenseModal({
                         onChange={(e) => setCategory(e.target.value)}
                       >
                         {categories.map((category) => (
-                          <option key={category._id} value={`${category.name}`}>
+                          <option key={category.id} value={`${category.id}`}>
                             {category.name}
                           </option>
                         ))}

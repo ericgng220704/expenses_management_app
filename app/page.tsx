@@ -9,7 +9,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { Button, Field, Select } from "@headlessui/react";
 import { Expense } from "./types/expense";
-import { Transaction } from "./types/transaction";
 import Summary from "./components/summary";
 import BarChart from "./components/barChart";
 
@@ -35,7 +34,7 @@ export default function Home() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
-  const [latestTransaction, setLatestTransaction] = useState<Transaction>();
+  const [latestTransaction, setLatestTransaction] = useState<Expense>();
 
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
@@ -54,20 +53,20 @@ export default function Home() {
         body: JSON.stringify({ selectedMonth, selectedYear }),
       });
 
-      const { expenses, categories, availableYears, latestTrans } =
+      const { expenses, categories, availableYears, latestExpense } =
         await response.json();
 
       setExpenses(expenses);
       console.log(expenses);
       setCategories(categories);
       setAvailableYears(availableYears);
-      setLatestTransaction(latestTrans);
+      setLatestTransaction(latestExpense);
     } catch (e) {
       console.log(e);
       alert("Error fetch all");
     }
   };
-
+  console.log(latestTransaction);
   return (
     <div className="flex justify-center items-start w-full bg-slate-50">
       <div className="p-8 w-full max-w-4xl">
@@ -113,7 +112,7 @@ export default function Home() {
                 setSelectedYear(e.target.value.toString());
 
                 if (selectedMonth === "") {
-                  months[today.getMonth()];
+                  setSelectedMonth(months[today.getMonth()]);
                 }
               }}
             >

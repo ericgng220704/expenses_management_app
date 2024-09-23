@@ -41,7 +41,7 @@ export default function BarChart({ expenses, categories }: BarChartProps) {
   const labels = categories.map((category) => category.name);
   const data = labels.map((label) => {
     const total = expenses
-      .filter((expense) => expense.category === label)
+      .filter((expense) => expense.category.name === label)
       .reduce((sum, expense) => sum + expense.amount / 100, 0); // Divide by 100 if amount is in cents
     return total;
   });
