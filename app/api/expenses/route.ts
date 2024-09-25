@@ -1,10 +1,30 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma"; // Prisma client singleton import
 
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 export async function POST(req: Request) {
   try {
     const { title, category, amount, date, note, payer } = await req.json();
-    console.log(category);
+
+    const balance = await prisma.balance.findFirst({});
+
+    if (!balance) {
+      return;
+    }
 
     const newExpense = await prisma.expense.create({
       data: {
@@ -19,19 +39,16 @@ export async function POST(req: Request) {
       },
     });
 
-    const latestExpense = await prisma.expense.findFirst({
-      take: 1,
-      orderBy: {
-        date: "desc",
-      },
+    const expenses = await prisma.expense.findMany({
       include: {
         category: true,
       },
+      orderBy: {
+        date: "desc",
+      },
     });
 
-    const expenses = await prisma.expense.findMany({});
-
-    return NextResponse.json({ newExpense, latestExpense, expenses });
+    return NextResponse.json({ newExpense, balance, expenses });
   } catch (e) {
     console.log(e);
     return NextResponse.json(
@@ -48,31 +65,23 @@ export async function GET(req: Request) {
     const selectedYear = searchParams.get("selectedYear") || "";
     const all = searchParams.get("all") === "true"; // Convert to boolean
 
-    // Helper function to convert month name to month index (01 for January, 02 for February, etc.)
-    const monthIndex = (
-      "0" +
-      ([
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ].indexOf(selectedMonth) +
-        1)
-    ).slice(-2);
+    const monthIndex = months.indexOf(selectedMonth) + 1; // Get 1-based month index
 
     // Construct date range for the selected month and year
-    const startDate = `${selectedYear}-${monthIndex}-01`;
-    const endDate = `${selectedYear}-${("0" + (parseInt(monthIndex) + 1)).slice(
-      -2
-    )}-01`;
+    const startDate = `${selectedYear}-${monthIndex
+      .toString()
+      .padStart(2, "0")}-01`;
+
+    let endDate;
+    if (monthIndex === 12) {
+      // If it's December, set endDate to January 1st of the next year
+      endDate = `${parseInt(selectedYear) + 1}-01-01`;
+    } else {
+      // Otherwise, increment the month for the end date
+      endDate = `${selectedYear}-${(monthIndex + 1)
+        .toString()
+        .padStart(2, "0")}-01`;
+    }
 
     let expenses;
 
@@ -115,6 +124,55 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ expenses });
+  } catch (e) {
+    console.log(e);
+    return NextResponse.json(
+      { message: "Failed to fetch data" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const { id, title, category, amount, date, note, payer } = await req.json();
+
+    const editedExpense = await prisma.expense.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        title: title,
+        category_id: parseInt(category),
+        amount: parseInt(amount),
+        balanceAfter: 0,
+        balanceBefore: 0,
+        date: new Date(date),
+        note,
+        payer,
+      },
+    });
+
+    const latestExpense = await prisma.expense.findFirst({
+      take: 1,
+      orderBy: {
+        date: "desc",
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    const expenses = await prisma.expense.findMany({
+      include: {
+        category: true,
+      },
+      orderBy: {
+        date: "desc",
+      },
+    });
+
+    return NextResponse.json({ editedExpense, latestExpense, expenses });
   } catch (e) {
     console.log(e);
     return NextResponse.json(

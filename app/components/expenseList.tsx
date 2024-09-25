@@ -6,11 +6,15 @@ import Icon from "./icons";
 type ExpenseListProps = {
   expenses: Expense[];
   categories: Category[];
+  setIsEditExpenseModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setExpenseEditing: React.Dispatch<React.SetStateAction<Expense | undefined>>;
 };
 
 export default function ExpenseList({
   expenses,
   categories,
+  setIsEditExpenseModal,
+  setExpenseEditing,
 }: ExpenseListProps) {
   return (
     <ul className="space-y-4 min-h-20">
@@ -20,6 +24,10 @@ export default function ExpenseList({
           className={`flex justify-between items-center px-4 py-3 sm:py-4 ${
             colorMap[expense.category.color] || "bg-white"
           } rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-stone-200`}
+          onClick={() => {
+            setIsEditExpenseModal(true);
+            setExpenseEditing(expense);
+          }}
         >
           <div className="flex items-center gap-4">
             <Icon
@@ -27,9 +35,9 @@ export default function ExpenseList({
               category={`${expense.category.name}`}
             />
             <div>
-              <p className="font-bold">{expense.title}</p>
+              <p className="font-bold">{expense?.title}</p>
               <p className="text-sm text-gray-500">
-                {new Date(expense.date).toDateString()}
+                {new Date(expense.date).toISOString().split("T")[0]}
               </p>
             </div>
           </div>

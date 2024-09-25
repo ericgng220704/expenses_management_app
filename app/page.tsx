@@ -22,6 +22,8 @@ import {
 import { Expense } from "./types/expense";
 import Summary from "./components/summary";
 import BarChart from "./components/barChart";
+import EditExpenseModal from "./components/editExpenseModal";
+import { Balance } from "./types/balance";
 
 const months = [
   "January",
@@ -42,13 +44,15 @@ const today = new Date();
 
 export default function Home() {
   const [isAddExpenseModal, setIsAddExpenseModal] = useState(false);
+  const [isEditExpenseModal, setIsEditExpenseModal] = useState(false);
+  const [expenseEditing, setExpenseEditing] = useState<Expense>();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
-  const [latestTransaction, setLatestTransaction] = useState<Expense>();
+  const [balance, setBalance] = useState<Balance>();
   const [isLoading, setIsLoading] = useState(false);
 
   const [selectedYear, setSelectedYear] = useState("2024");
@@ -72,25 +76,44 @@ export default function Home() {
     }
   }, [selectedMonth, selectedYear]);
 
-  // Fetch all data (categories, expenses, available years, etc.)
+  // // Fetch all data (categories, expenses, available years, etc.)
+  // const fetchAll = async () => {
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await fetch("/api/all", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ selectedMonth, selectedYear }),
+  //     });
+
+  //     const { expenses, categories, availableYears, latestExpense } =
+  //       await response.json();
+
+  //     setExpenses(expenses);
+  //     setCategories(categories);
+  //     setAvailableYears(availableYears);
+  //     setLatestTransaction(latestExpense);
+  //   } catch (e) {
+  //     console.log(e);
+  //     alert("Error fetching all data");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // Fetch all data (categories, available years, etc.)
   const fetchAll = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/all", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ selectedMonth, selectedYear }),
-      });
+      const response = await fetch("/api/all");
 
-      const { expenses, categories, availableYears, latestExpense } =
-        await response.json();
+      const { categories, availableYears, balance } = await response.json();
 
-      setExpenses(expenses);
       setCategories(categories);
       setAvailableYears(availableYears);
-      setLatestTransaction(latestExpense);
+      setBalance(balance);
     } catch (e) {
       console.log(e);
       alert("Error fetching all data");
@@ -150,17 +173,18 @@ export default function Home() {
     <div className="flex justify-center items-start w-full bg-slate-50">
       <div className="py-4 px-3 sm:p-8 w-full sm:max-w-4xl">
         <div className="flex w-full items-center">
-          {latestTransaction && (
-            <TotalBalance latestTrans={latestTransaction} />
-          )}
+          {balance && <TotalBalance balance={balance} />}
           <button
             className="py-2 px-4 sm:p-4 bg-black text-white rounded-xl whitespace-nowrap h-fit"
             onClick={() => setIsAddExpenseModal(true)}
           >
-            <p className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faPen} />{" "}
-              <span className="sm:block hidden">Expense</span>New +
-            </p>
+              <div className="flex items-center gap-1">
+                <span className="sm:block hidden">Expense</span>
+                <span>New +</span>
+              </div>
+            </div>
           </button>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mt-8">
@@ -223,8 +247,10 @@ export default function Home() {
         </div>
 
         <div className="mt-8 text-center rounded-xl">
-          {categories && expenses && (
+          {categories && expenses ? (
             <BarChart expenses={expenses} categories={categories} />
+          ) : (
+            <p>Loading Bar Chart...</p>
           )}
         </div>
 
@@ -237,7 +263,7 @@ export default function Home() {
         </div>
 
         <div className="mt-6">
-          <Disclosure>
+          <Disclosure defaultOpen={true}>
             <DisclosureButton className="group flex items-center gap-2">
               <h2 className="text-base sm:text-xl mb-2">Categories</h2>
               <FontAwesomeIcon
@@ -270,7 +296,12 @@ export default function Home() {
           </div>
           {isLoading && <p>Loading....</p>}
           {!isLoading && filteredExpenses && (
-            <ExpenseList expenses={filteredExpenses} categories={categories} />
+            <ExpenseList
+              expenses={filteredExpenses}
+              categories={categories}
+              setIsEditExpenseModal={setIsEditExpenseModal}
+              setExpenseEditing={setExpenseEditing}
+            />
           )}
         </div>
 
@@ -279,13 +310,24 @@ export default function Home() {
           <button className="px-4 py-2 border rounded-lg">Next</button>
         </div> */}
       </div>
-      {categories && latestTransaction && (
+      {categories && (
         <AddExpenseModal
           isOpen={isAddExpenseModal}
           setIsOpen={setIsAddExpenseModal}
           categories={categories}
           setExpenses={setExpenses}
-          setLatestTransaction={setLatestTransaction}
+          setBalance={setBalance}
+        />
+      )}
+
+      {isEditExpenseModal && expenseEditing && (
+        <EditExpenseModal
+          isOpen={isEditExpenseModal}
+          setIsOpen={setIsEditExpenseModal}
+          categories={categories}
+          setExpenses={setExpenses}
+          setBalance={setBalance}
+          selectedExpense={expenseEditing}
         />
       )}
     </div>

@@ -2,6 +2,7 @@ export interface Expense {
   id?: string;
   title: string;
   category: {
+    id: number;
     name: string;
     icon: string;
     color: string;

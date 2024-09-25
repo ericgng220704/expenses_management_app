@@ -8,6 +8,11 @@ generator client {
   output   = "../node_modules/.prisma/client"
 }
 
+model Balance {
+  id             Int       @id @default(autoincrement())
+  amount         Int
+}
+
 model Expense {
   id             Int       @id @default(autoincrement())
   title          String
@@ -19,6 +24,18 @@ model Expense {
   date           DateTime
   note           String?
   payer          String
+  created_at     DateTime @default(now())
+}
+
+model Income {
+  id             Int       @id @default(autoincrement())
+  title          String
+  amount         Int
+  balanceBefore  Int
+  balanceAfter   Int
+  date           DateTime
+  note           String?
+  receiver       String
   created_at     DateTime @default(now())
 }
 
