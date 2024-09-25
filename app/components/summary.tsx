@@ -54,18 +54,18 @@ export default function Summary({ expenses }: SummaryProps) {
   );
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 gap-4 text-md sm:text-lg">
       <div>
         <p>Today</p>
-        <p className="text-lg font-bold">${daySum.toFixed(2)}</p>
+        <p className="font-bold">${daySum.toFixed(2)}</p>
       </div>
       <div>
         <p>This Week</p>
-        <p className="text-lg font-bold">${weekSum.toFixed(2)}</p>
+        <p className="font-bold">${weekSum.toFixed(2)}</p>
       </div>
       <div>
         <p>Month</p>
-        <p className="text-lg font-bold">${monthSum.toFixed(2)}</p>
+        <p className="font-bold">${monthSum.toFixed(2)}</p>
       </div>
     </div>
   );
