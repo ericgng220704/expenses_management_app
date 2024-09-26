@@ -78,10 +78,10 @@ export default function EditExpenseModal({
       const { balance, expenses } = await response.json();
 
       setBalance(balance);
-
-      toast.success("Expense edited successfully!");
       setExpenses(expenses);
       setIsOpen(false);
+
+      toast.success("Expense edited successfully!");
     } catch (error) {
       console.error(error);
       toast.error("Error adding expense");

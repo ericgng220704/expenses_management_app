@@ -39,6 +39,16 @@ export default function AddExpenseModal({
   const [payer, setPayer] = useState("");
   const [submitDisable, setSubmitDisable] = useState(false);
 
+  const resetModal = () => {
+    setTitle("");
+    setCategory("1");
+    setAmount("");
+    setDate(new Date().toISOString().split("T")[0]);
+    setNote("");
+    setPayer("");
+    setSubmitDisable(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -73,6 +83,7 @@ export default function AddExpenseModal({
       toast.success("Expense added successfully!");
       setExpenses(expenses);
       setIsOpen(false);
+      resetModal();
     } catch (error) {
       console.error(error);
       toast.error("Error adding expense");
