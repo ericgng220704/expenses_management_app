@@ -28,7 +28,7 @@ export default function CategoryList({
           <button
             key={category.id}
             className={`flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-2 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] ${
-              isSelected ? "bg-black text-white" : "bg-white"
+              isSelected ? "bg-gray-800 text-white" : "bg-white"
             }`}
             onClick={() => toggleCategory(category.name)}
           >

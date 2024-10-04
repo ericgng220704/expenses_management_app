@@ -6,8 +6,14 @@ type SummaryProps = {
   selectedYear: string;
 };
 
-export default function Summary({ expenses }: SummaryProps) {
+export default function Summary({
+  expenses,
+  selectedMonth,
+  selectedYear,
+}: SummaryProps) {
   const today = new Date();
+  const currentMonth = today.toLocaleString("default", { month: "long" });
+  const currentYear = today.getFullYear().toString();
 
   // Get start and end dates for the current day
   const startOfDay = new Date(
@@ -53,16 +59,25 @@ export default function Summary({ expenses }: SummaryProps) {
     0
   );
 
+  const showWeekAndDay =
+    selectedMonth === currentMonth && selectedYear === currentYear;
+
   return (
-    <div className="grid grid-cols-3 gap-4 text-md sm:text-lg">
-      <div>
-        <p>Today</p>
-        <p className="font-bold">${daySum.toFixed(2)}</p>
-      </div>
-      <div>
-        <p>This Week</p>
-        <p className="font-bold">${weekSum.toFixed(2)}</p>
-      </div>
+    <div className="flex justify-around gap-4 text-md sm:text-lg">
+      {showWeekAndDay && (
+        <div>
+          <p>Today</p>
+          <p className="font-bold">${daySum.toFixed(2)}</p>
+        </div>
+      )}
+
+      {showWeekAndDay && (
+        <div>
+          <p>This Week</p>
+          <p className="font-bold">${weekSum.toFixed(2)}</p>
+        </div>
+      )}
+
       <div>
         <p>Month</p>
         <p className="font-bold">${monthSum.toFixed(2)}</p>

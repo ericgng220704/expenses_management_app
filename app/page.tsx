@@ -24,6 +24,7 @@ import Summary from "./components/summary";
 import BarChart from "./components/barChart";
 import EditExpenseModal from "./components/editExpenseModal";
 import { Balance } from "./types/balance";
+import { Switch } from "@headlessui/react";
 
 const months = [
   "January",
@@ -58,6 +59,8 @@ export default function Home() {
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
 
+  const [selected, setSelected] = useState("Expenses");
+
   // Initialization call (fetchAll)
   useEffect(() => {
     const initData = async () => {
@@ -75,33 +78,6 @@ export default function Home() {
       fetchExpenses();
     }
   }, [selectedMonth, selectedYear]);
-
-  // // Fetch all data (categories, expenses, available years, etc.)
-  // const fetchAll = async () => {
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await fetch("/api/all", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ selectedMonth, selectedYear }),
-  //     });
-
-  //     const { expenses, categories, availableYears, latestExpense } =
-  //       await response.json();
-
-  //     setExpenses(expenses);
-  //     setCategories(categories);
-  //     setAvailableYears(availableYears);
-  //     setLatestTransaction(latestExpense);
-  //   } catch (e) {
-  //     console.log(e);
-  //     alert("Error fetching all data");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   // Fetch all data (categories, available years, etc.)
   const fetchAll = async () => {
@@ -168,6 +144,10 @@ export default function Home() {
     return expenses;
   };
 
+  const handleToggle = () => {
+    setSelected((prev) => (prev === "Expenses" ? "Income" : "Expenses"));
+  };
+
   const filteredExpenses = expenseFilter(expenses);
   return (
     <div className="flex justify-center items-start w-full bg-slate-50">
@@ -188,11 +168,24 @@ export default function Home() {
           </button>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between mt-8">
-          <div className="flex gap-2 bg-gray-200 rounded-full overflow-hidden max-w-fit">
-            <button className={`px-4 py-2 bg-black text-white rounded-full`}>
+          <div
+            onClick={handleToggle}
+            className="flex bg-gray-200 rounded-full overflow-hidden max-w-fit cursor-pointer"
+          >
+            <button
+              className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out ${
+                selected === "Expenses" ? "bg-black text-white" : "text-black"
+              }`}
+            >
               Expenses
             </button>
-            <button className="px-4 py-2">Income</button>
+            <button
+              className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out ${
+                selected === "Income" ? "bg-black text-white" : "text-black"
+              }`}
+            >
+              Income
+            </button>
           </div>
 
           <Field className="flex gap-2 items-center">

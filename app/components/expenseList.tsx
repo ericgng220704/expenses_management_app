@@ -93,7 +93,7 @@ export default function ExpenseList({
               key={expense.id}
               className={`flex justify-between items-center px-4 py-3 sm:py-4 w-full cursor-auto ${
                 colorMap[expense.category.color] || "bg-white"
-              } rounded-lg mb-2 border border-stone-200`}
+              } rounded-lg mb-2 border border-stone-200 `}
             >
               <div className="flex items-center gap-4">
                 <Icon
