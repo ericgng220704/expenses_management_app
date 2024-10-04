@@ -24,7 +24,6 @@ import Summary from "./components/summary";
 import BarChart from "./components/barChart";
 import EditExpenseModal from "./components/editExpenseModal";
 import { Balance } from "./types/balance";
-import { Switch } from "@headlessui/react";
 
 const months = [
   "January",
