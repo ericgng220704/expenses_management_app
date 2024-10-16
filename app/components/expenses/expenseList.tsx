@@ -1,9 +1,9 @@
 "use client";
 
-import { Expense } from "../types/expense";
-import { colorMap } from "../types/colorMap";
-import { Category } from "../types/category";
-import Icon from "./icons";
+import { colorMap } from "@/app/types/colorMap";
+import { Category } from "@/app/types/category";
+import Icon from "../icons";
+import { Expense } from "@/app/types/expense";
 import {
   SwipeableList,
   SwipeableListItem,

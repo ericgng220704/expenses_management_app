@@ -11,50 +11,49 @@ import {
   TransitionChild,
   Field,
 } from "@headlessui/react";
-import { Category } from "../types/category";
-import { Expense } from "../types/expense";
+import { Category } from "@/app/types/category";
+import { Expense } from "@/app/types/expense";
 import toast from "react-hot-toast";
-import { Balance } from "../types/balance";
+import { Balance } from "@/app/types/balance";
 
-type AddExpenseModalProps = {
+type EditExpenseModalProps = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   categories: Category[];
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
   setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
+  selectedExpense: Expense;
 };
 
-export default function AddExpenseModal({
+export default function EditExpenseModal({
   isOpen,
   setIsOpen,
   categories,
   setExpenses,
   setBalance,
-}: AddExpenseModalProps) {
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("1");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [note, setNote] = useState("");
-  const [payer, setPayer] = useState("");
+  selectedExpense,
+}: EditExpenseModalProps) {
+  const [title, setTitle] = useState(selectedExpense.title);
+  const [category, setCategory] = useState(
+    selectedExpense.category.id.toString()
+  );
+  const [amount, setAmount] = useState(
+    (selectedExpense.amount / 100).toString()
+  );
+  const [date, setDate] = useState(
+    new Date(selectedExpense.date).toISOString().split("T")[0]
+  );
+  const [note, setNote] = useState(selectedExpense.note);
+  const [payer, setPayer] = useState(selectedExpense.payer);
   const [submitDisable, setSubmitDisable] = useState(false);
-
-  const resetModal = () => {
-    setTitle("");
-    setCategory("1");
-    setAmount("");
-    setDate(new Date().toISOString().split("T")[0]);
-    setNote("");
-    setPayer("");
-    setSubmitDisable(false);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setSubmitDisable(true);
 
-    const newExpenseData = {
+    const editedExpenseData = {
+      id: selectedExpense.id,
       title,
       category,
       amount: parseFloat(amount) * 100,
@@ -65,11 +64,11 @@ export default function AddExpenseModal({
 
     try {
       const response = await fetch("/api/expenses", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newExpenseData),
+        body: JSON.stringify(editedExpenseData),
       });
 
       if (!response.ok) {
@@ -79,11 +78,10 @@ export default function AddExpenseModal({
       const { balance, expenses } = await response.json();
 
       setBalance(balance);
-
-      toast.success("Expense added successfully!");
       setExpenses(expenses);
       setIsOpen(false);
-      resetModal();
+
+      toast.success("Expense edited successfully!");
     } catch (error) {
       console.error(error);
       toast.error("Error adding expense");
@@ -131,7 +129,7 @@ export default function AddExpenseModal({
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Add New Expense
+                    Edit Expense
                   </DialogTitle>
 
                   <form onSubmit={handleSubmit} className="mt-4">
@@ -229,7 +227,7 @@ export default function AddExpenseModal({
                         } font-medium text-sm leading-5 rounded-md focus:outline-none`}
                         disabled={submitDisable}
                       >
-                        Add Expense
+                        Save
                       </button>
                     </Field>
                   </form>

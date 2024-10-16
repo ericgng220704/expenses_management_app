@@ -10,6 +10,7 @@ import {
 } from "chart.js";
 import { Expense } from "../types/expense";
 import { Category } from "../types/category";
+import { Income } from "../types/income";
 
 ChartJS.register(
   CategoryScale,
@@ -30,27 +31,52 @@ const categoryColors: Record<string, string> = {
   "Dining Out": "#ffec99", // yellow-100
   // Shopping: "#eff6ff", // blue-50
   Shopping: "#a5d8ff", // blue-50
+  Salary: "#b2f2bb",
+  Wages: "#b2f2bb",
+  Bonuses: "#ffc9c9",
+  "Tax Refunds": "#ffec99",
 };
 
 type BarChartProps = {
   expenses: Expense[];
+  incomes: Income[];
+  view: String;
   categories: Category[];
 };
 
-export default function BarChart({ expenses, categories }: BarChartProps) {
+export default function BarChart({
+  view,
+  incomes,
+  expenses,
+  categories,
+}: BarChartProps) {
   const labels = categories.map((category) => category.name);
-  const data = labels.map((label) => {
-    const total = expenses
-      .filter((expense) => expense.category.name === label)
-      .reduce((sum, expense) => sum + expense.amount / 100, 0); // Divide by 100 if amount is in cents
-    return total;
-  });
+  let data = [];
+
+  if (view === "Expenses") {
+    data = labels.map((label) => {
+      const total = expenses
+        .filter((expense) => expense.category.name === label)
+        .reduce((sum, expense) => sum + expense.amount / 100, 0); // Divide by 100 if amount is in cents
+      return total;
+    });
+  } else {
+    data = labels.map((label) => {
+      const total = incomes
+        .filter((income) => income.category.name === label)
+        .reduce((sum, income) => sum + income.amount / 100, 0);
+
+      return total;
+    });
+  }
 
   const chartData = {
     labels,
     datasets: [
       {
-        label: "Total Expenses by Category",
+        label: `Total ${
+          view === "Expenses" ? "Expenses" : "Incomes"
+        } by Category`,
         data, // The data array corresponds to the labels
         backgroundColor: labels.map((label) => categoryColors[label]), // Use the color map here
         borderColor: labels.map((label) => categoryColors[label]),
@@ -68,7 +94,10 @@ export default function BarChart({ expenses, categories }: BarChartProps) {
           color: "#000000",
         },
       },
-      title: { display: true, text: "Expenses by Category" },
+      title: {
+        display: true,
+        text: `${view === "Expenses" ? "Expenses" : "Incomes"} by Category`,
+      },
     },
   };
 

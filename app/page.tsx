@@ -1,29 +1,18 @@
 "use client";
 
 import TotalBalance from "./components/totalBalance";
-import CategoryList from "./components/categoryList";
-import ExpenseList from "./components/expenseList";
 import { useEffect, useState } from "react";
-import AddExpenseModal from "./components/addExpenseModal";
+import AddExpenseModal from "./components/expenses/addExpenseModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faPen,
-  faMagnifyingGlass,
-  faChevronDown,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  Button,
-  Field,
-  Select,
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-} from "@headlessui/react";
+import { faPen } from "@fortawesome/free-solid-svg-icons";
+import { Button, Field, Select } from "@headlessui/react";
 import { Expense } from "./types/expense";
 import Summary from "./components/summary";
 import BarChart from "./components/barChart";
-import EditExpenseModal from "./components/editExpenseModal";
+import EditExpenseModal from "./components/expenses/editExpenseModal";
 import { Balance } from "./types/balance";
+import ExpensePage from "./components/expenses/expensePage";
+import { Income } from "./types/income";
 
 const months = [
   "January",
@@ -43,22 +32,27 @@ const months = [
 const today = new Date();
 
 export default function Home() {
-  const [isAddExpenseModal, setIsAddExpenseModal] = useState(false);
-  const [isEditExpenseModal, setIsEditExpenseModal] = useState(false);
-  const [expenseEditing, setExpenseEditing] = useState<Expense>();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [categories, setCategories] = useState([]);
+  // Both
   const [availableYears, setAvailableYears] = useState([]);
   const [balance, setBalance] = useState<Balance>();
-  const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const [selected, setSelected] = useState("Expenses");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [view, setView] = useState("Expenses");
+  // Expense
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  const [isAddExpenseModal, setIsAddExpenseModal] = useState(false);
+  const [isEditExpenseModal, setIsEditExpenseModal] = useState(false);
+  const [expenseEditing, setExpenseEditing] = useState<Expense>();
+
+  // Income
+  const [incomes, setIncomes] = useState<Income[]>([]);
 
   // Initialization call (fetchAll)
   useEffect(() => {
@@ -66,15 +60,15 @@ export default function Home() {
       await fetchAll();
     };
     initData();
-  }, []);
+  }, [view]);
 
   // Fetch expenses based on user-selected month/year or when "All" is selected
   useEffect(() => {
     if (selectedMonth === "" && selectedYear === "") {
       // User has selected "All"
-      fetchAllExpenses();
+      fetchAllEntity();
     } else {
-      fetchExpenses();
+      fetchEntity();
     }
   }, [selectedMonth, selectedYear]);
 
@@ -82,7 +76,7 @@ export default function Home() {
   const fetchAll = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/all");
+      const response = await fetch(`/api/all?view=${view}`);
 
       const { categories, availableYears, balance } = await response.json();
 
@@ -97,33 +91,49 @@ export default function Home() {
     }
   };
 
-  // Fetch only expenses for the selected month and year
-  const fetchExpenses = async () => {
+  // Fetch only expenses/incomes for the selected month and year
+  const fetchEntity = async () => {
     try {
       setIsLoading(true);
+
       const response = await fetch(
-        `/api/expenses?selectedMonth=${selectedMonth}&&selectedYear=${selectedYear}`
+        `/api/${
+          view === "Expenses" ? "expenses" : "income"
+        }?selectedMonth=${selectedMonth}&&selectedYear=${selectedYear}`
       );
-      const { expenses } = await response.json();
-      setExpenses(expenses);
+      if (view === "Expenses") {
+        const { expenses } = await response.json();
+        setExpenses(expenses);
+      } else {
+        const { incomes } = await response.json();
+        setIncomes(incomes);
+      }
     } catch (e) {
       console.log(e);
-      alert("Error fetching expenses");
+      alert("Error fetching entity");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Fetch all expenses (used when "All" is selected)
-  const fetchAllExpenses = async () => {
+  const fetchAllEntity = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/expenses?all=true");
-      const { expenses } = await response.json();
-      setExpenses(expenses);
+
+      const response = await fetch(
+        `/api/${view === "Expenses" ? "expenses" : "income"}?all=true`
+      );
+      if (view === "Expenses") {
+        const { expenses } = await response.json();
+        setExpenses(expenses);
+      } else {
+        const { incomes } = await response.json();
+        setIncomes(incomes);
+      }
     } catch (e) {
       console.log(e);
-      alert("Error fetching all expenses");
+      alert("Error fetching all Entity");
     } finally {
       setIsLoading(false);
     }
@@ -143,11 +153,24 @@ export default function Home() {
     return expenses;
   };
 
+  const incomesFilter = (incomes: Income[]) => {
+    incomes = incomes.filter((income) => income.title.includes(searchTerm));
+
+    if (selectedCategories.length > 0) {
+      incomes = incomes.filter((income) =>
+        selectedCategories.find((category) => category === income.category.name)
+      );
+    }
+
+    return incomes;
+  };
+
   const handleToggle = () => {
-    setSelected((prev) => (prev === "Expenses" ? "Income" : "Expenses"));
+    setView((prev) => (prev === "Expenses" ? "Income" : "Expenses"));
   };
 
   const filteredExpenses = expenseFilter(expenses);
+  const filteredIncomes = incomesFilter(incomes);
   return (
     <div className="flex justify-center items-start w-full bg-slate-50">
       <div className="py-4 px-3 sm:p-8 w-full sm:max-w-4xl">
@@ -160,7 +183,9 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faPen} />{" "}
               <div className="flex items-center gap-1">
-                <span className="sm:block hidden">Expense</span>
+                <span className="sm:block hidden">
+                  {view === "Expenses" ? "Expense" : "Income"}
+                </span>
                 <span>New +</span>
               </div>
             </div>
@@ -173,14 +198,14 @@ export default function Home() {
           >
             <button
               className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out ${
-                selected === "Expenses" ? "bg-black text-white" : "text-black"
+                view === "Expenses" ? "bg-black text-white" : "text-black"
               }`}
             >
               Expenses
             </button>
             <button
               className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out ${
-                selected === "Income" ? "bg-black text-white" : "text-black"
+                view === "Income" ? "bg-black text-white" : "text-black"
               }`}
             >
               Income
@@ -240,7 +265,12 @@ export default function Home() {
 
         <div className="mt-8 text-center rounded-xl">
           {categories && expenses ? (
-            <BarChart expenses={expenses} categories={categories} />
+            <BarChart
+              view={view}
+              incomes={incomes}
+              expenses={expenses}
+              categories={categories}
+            />
           ) : (
             <p>Loading Bar Chart...</p>
           )}
@@ -254,55 +284,21 @@ export default function Home() {
           />
         </div>
 
-        <div className="mt-6">
-          <Disclosure defaultOpen={true}>
-            <DisclosureButton className="group flex items-center gap-2">
-              <h2 className="text-base sm:text-xl mb-2">Categories</h2>
-              <FontAwesomeIcon
-                className="group-data-[open]:rotate-180 mb-2"
-                icon={faChevronDown}
-              />
-            </DisclosureButton>
-            <DisclosurePanel>
-              {categories && (
-                <CategoryList
-                  categories={categories}
-                  selectedCategories={selectedCategories}
-                  setSelectedCategories={setSelectedCategories}
-                />
-              )}
-            </DisclosurePanel>
-          </Disclosure>
-        </div>
-
-        <div className="mt-8">
-          <div className="flex gap-0 items-center h-11 bg-white mb-4 rounded-xl w-full">
-            <FontAwesomeIcon className="p-4" icon={faMagnifyingGlass} />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full focus:outline-none focus:border-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          {isLoading && <p>Loading....</p>}
-          {!isLoading && filteredExpenses && (
-            <ExpenseList
-              expenses={filteredExpenses}
-              categories={categories}
-              setIsEditExpenseModal={setIsEditExpenseModal}
-              setExpenseEditing={setExpenseEditing}
-            />
-          )}
-        </div>
-
-        {/* <div className="mt-8 flex justify-between">
-          <button className="px-4 py-2 border rounded-lg">Previous</button>
-          <button className="px-4 py-2 border rounded-lg">Next</button>
-        </div> */}
+        {view === "Expenses" && (
+          <ExpensePage
+            categories={categories}
+            selectedCategories={selectedCategories}
+            setSelectedCategories={setSelectedCategories}
+            setSearchTerm={setSearchTerm}
+            setIsEditExpenseModal={setIsEditExpenseModal}
+            setExpenseEditing={setExpenseEditing}
+            searchTerm={searchTerm}
+            isLoading={isLoading}
+            filteredExpenses={filteredExpenses}
+          />
+        )}
       </div>
-      {categories && (
+      {view === "Expenses" && categories && (
         <AddExpenseModal
           isOpen={isAddExpenseModal}
           setIsOpen={setIsAddExpenseModal}
@@ -312,7 +308,7 @@ export default function Home() {
         />
       )}
 
-      {isEditExpenseModal && expenseEditing && (
+      {view === "Expenses" && isEditExpenseModal && expenseEditing && (
         <EditExpenseModal
           isOpen={isEditExpenseModal}
           setIsOpen={setIsEditExpenseModal}
