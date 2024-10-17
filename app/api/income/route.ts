@@ -18,7 +18,8 @@ const months = [
 
 export async function POST(req: Request) {
   try {
-    const { title, category, amount, date, note, receiver } = await req.json();
+    const { title, category, amount, date, note, authorizer } =
+      await req.json();
 
     const balance = await prisma.balance.findFirst({});
 
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
           balanceBefore: balance.amount,
           date: new Date(date),
           note,
-          receiver,
+          receiver: authorizer,
         },
       });
 
@@ -160,7 +161,7 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const { id, title, category, amount, date, note, receiver } =
+    const { id, title, category, amount, date, note, authorizer } =
       await req.json();
 
     const balance = await prisma.balance.findFirst({});
@@ -195,7 +196,7 @@ export async function PUT(req: Request) {
           balanceBefore: revertedBalance,
           date: new Date(date),
           note,
-          receiver,
+          receiver: authorizer,
         },
       });
 

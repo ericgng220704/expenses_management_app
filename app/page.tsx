@@ -2,17 +2,17 @@
 
 import TotalBalance from "./components/totalBalance";
 import { useEffect, useState } from "react";
-import AddExpenseModal from "./components/expenses/addExpenseModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { Button, Field, Select } from "@headlessui/react";
 import { Expense } from "./types/expense";
 import Summary from "./components/summary";
 import BarChart from "./components/barChart";
-import EditExpenseModal from "./components/expenses/editExpenseModal";
 import { Balance } from "./types/balance";
-import ExpensePage from "./components/expenses/expensePage";
 import { Income } from "./types/income";
+import TransactionPage from "./components/transactionPage";
+import AddTransactionModal from "./components/addTransactionModal";
+import EditTransactionModal from "./components/editTransactionModal";
 
 const months = [
   "January",
@@ -40,6 +40,7 @@ export default function Home() {
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isAddTransactionModal, setIsAddTransactionModal] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -47,12 +48,12 @@ export default function Home() {
   // Expense
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  const [isAddExpenseModal, setIsAddExpenseModal] = useState(false);
-  const [isEditExpenseModal, setIsEditExpenseModal] = useState(false);
+  const [isEditTransactionModal, setIsEditTransactionModal] = useState(false);
   const [expenseEditing, setExpenseEditing] = useState<Expense>();
 
   // Income
   const [incomes, setIncomes] = useState<Income[]>([]);
+  const [incomeEditing, setIncomeEditing] = useState<Income>();
 
   // Initialization call (fetchAll)
   useEffect(() => {
@@ -60,7 +61,7 @@ export default function Home() {
       await fetchAll();
     };
     initData();
-  }, [view]);
+  }, [view, expenses, incomes]);
 
   // Fetch expenses based on user-selected month/year or when "All" is selected
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function Home() {
     } else {
       fetchEntity();
     }
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, view]);
 
   // Fetch all data (categories, available years, etc.)
   const fetchAll = async () => {
@@ -178,7 +179,7 @@ export default function Home() {
           {balance && <TotalBalance balance={balance} />}
           <button
             className="py-2 px-4 sm:p-4 bg-black text-white rounded-xl whitespace-nowrap h-fit"
-            onClick={() => setIsAddExpenseModal(true)}
+            onClick={() => setIsAddTransactionModal(true)}
           >
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faPen} />{" "}
@@ -278,44 +279,55 @@ export default function Home() {
 
         <div className="mt-8 text-center">
           <Summary
+            view={view}
             expenses={expenses}
+            incomes={incomes}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
         </div>
 
-        {view === "Expenses" && (
-          <ExpensePage
-            categories={categories}
-            selectedCategories={selectedCategories}
-            setSelectedCategories={setSelectedCategories}
-            setSearchTerm={setSearchTerm}
-            setIsEditExpenseModal={setIsEditExpenseModal}
-            setExpenseEditing={setExpenseEditing}
-            searchTerm={searchTerm}
-            isLoading={isLoading}
-            filteredExpenses={filteredExpenses}
-          />
-        )}
+        <TransactionPage
+          view={view}
+          categories={categories}
+          selectedCategories={selectedCategories}
+          setSelectedCategories={setSelectedCategories}
+          setSearchTerm={setSearchTerm}
+          setIsEditTransactionModal={setIsEditTransactionModal}
+          setExpenseEditing={setExpenseEditing}
+          setIncomeEditing={setIncomeEditing}
+          searchTerm={searchTerm}
+          isLoading={isLoading}
+          filteredExpenses={filteredExpenses}
+          filteredIncomes={filteredIncomes}
+          setExpenses={setExpenses}
+          setIncomes={setIncomes}
+          setBalance={setBalance}
+        />
       </div>
-      {view === "Expenses" && categories && (
-        <AddExpenseModal
-          isOpen={isAddExpenseModal}
-          setIsOpen={setIsAddExpenseModal}
+      {categories && (
+        <AddTransactionModal
+          view={view}
+          isOpen={isAddTransactionModal}
+          setIsOpen={setIsAddTransactionModal}
           categories={categories}
           setExpenses={setExpenses}
+          setIncomes={setIncomes}
           setBalance={setBalance}
         />
       )}
 
-      {view === "Expenses" && isEditExpenseModal && expenseEditing && (
-        <EditExpenseModal
-          isOpen={isEditExpenseModal}
-          setIsOpen={setIsEditExpenseModal}
+      {isEditTransactionModal && (
+        <EditTransactionModal
+          view={view}
+          isOpen={isEditTransactionModal}
+          setIsOpen={setIsEditTransactionModal}
           categories={categories}
           setExpenses={setExpenses}
+          setIncomes={setIncomes}
           setBalance={setBalance}
           selectedExpense={expenseEditing}
+          selectedIncome={incomeEditing}
         />
       )}
     </div>

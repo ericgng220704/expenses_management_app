@@ -1,16 +1,28 @@
 import { Expense } from "../types/expense";
+import { Income } from "../types/income";
 
 type SummaryProps = {
+  view: string;
   expenses: Expense[];
+  incomes: Income[];
   selectedMonth: string;
   selectedYear: string;
 };
 
 export default function Summary({
+  view,
   expenses,
+  incomes,
   selectedMonth,
   selectedYear,
 }: SummaryProps) {
+  let transactions;
+  if (view === "Expenses") {
+    transactions = expenses;
+  } else {
+    transactions = incomes;
+  }
+
   const today = new Date();
   const currentMonth = today.toLocaleString("default", { month: "long" });
   const currentYear = today.getFullYear().toString();
@@ -38,24 +50,24 @@ export default function Summary({
   endOfWeek.setDate(endOfWeek.getDate() + 7); // Add 7 days to get the end of the week
 
   // Calculate total for the day
-  const daySum = expenses
-    .filter((expense) => {
-      const expenseDate = new Date(expense.date);
-      return expenseDate >= startOfDay && expenseDate < endOfDay;
+  const daySum = transactions
+    .filter((transaction) => {
+      const transactionDate = new Date(transaction.date);
+      return transactionDate >= startOfDay && transactionDate < endOfDay;
     })
-    .reduce((sum, expense) => sum + expense.amount / 100, 0);
+    .reduce((sum, transaction) => sum + transaction.amount / 100, 0);
 
   // Calculate total for the week
-  const weekSum = expenses
-    .filter((expense) => {
-      const expenseDate = new Date(expense.date);
-      return expenseDate >= startOfWeek && expenseDate < endOfWeek;
+  const weekSum = transactions
+    .filter((transaction) => {
+      const transactionDate = new Date(transaction.date);
+      return transactionDate >= startOfWeek && transactionDate < endOfWeek;
     })
-    .reduce((sum, expense) => sum + expense.amount / 100, 0);
+    .reduce((sum, transaction) => sum + transaction.amount / 100, 0);
 
   // Calculate total for the month (already filtered for the selected month and year)
-  const monthSum = expenses.reduce(
-    (sum, expense) => sum + expense.amount / 100,
+  const monthSum = transactions.reduce(
+    (sum, transaction) => sum + transaction.amount / 100,
     0
   );
 

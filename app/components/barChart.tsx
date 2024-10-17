@@ -40,7 +40,7 @@ const categoryColors: Record<string, string> = {
 type BarChartProps = {
   expenses: Expense[];
   incomes: Income[];
-  view: String;
+  view: string;
   categories: Category[];
 };
 

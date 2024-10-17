@@ -9,6 +9,9 @@ import {
   faChampagneGlasses,
   faCartShopping,
   faTheaterMasks,
+  faBriefcase,
+  faSackDollar,
+  faHandHoldingDollar,
   faTags,
   IconDefinition, // Import IconDefinition for proper typing
 } from "@fortawesome/free-solid-svg-icons";
@@ -26,6 +29,9 @@ const iconMap: Record<string, IconDefinition> = {
   faChampagneGlasses: faChampagneGlasses,
   faCartShopping: faCartShopping,
   faTheaterMasks: faTheaterMasks,
+  faBriefcase: faBriefcase,
+  faSackDollar: faSackDollar,
+  faHandHoldingDollar: faHandHoldingDollar,
   faTags: faTags,
 };
 

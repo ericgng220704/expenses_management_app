@@ -1,48 +1,57 @@
 "use client";
 
 import {
-  Button,
-  Field,
-  Select,
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faPen,
   faMagnifyingGlass,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { Category } from "@/app/types/category";
-import ExpenseList from "./expenseList";
 import CategoryList from "./categoryList";
-import { useState } from "react";
 import { Expense } from "@/app/types/expense";
+import { Income } from "../types/income";
+import TransactionList from "./transactionList";
+import { Balance } from "../types/balance";
 
-type ExpensePageProps = {
+type TransactionPageProps = {
+  view: string;
   categories: Category[];
   selectedCategories: string[];
   setSelectedCategories: React.Dispatch<React.SetStateAction<string[]>>;
   searchTerm: string;
   isLoading: boolean;
   filteredExpenses: Expense[];
+  filteredIncomes: Income[];
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  setIsEditExpenseModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsEditTransactionModal: React.Dispatch<React.SetStateAction<boolean>>;
   setExpenseEditing: React.Dispatch<React.SetStateAction<Expense | undefined>>;
+  setIncomeEditing: React.Dispatch<React.SetStateAction<Income | undefined>>;
+  setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
+  setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
+  setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
 };
 
-export default function ExpensePage({
+export default function TransactionPage({
+  view,
   categories,
   selectedCategories,
   setSelectedCategories,
   searchTerm,
   isLoading,
   filteredExpenses,
+  filteredIncomes,
   setSearchTerm,
-  setIsEditExpenseModal,
+  setIsEditTransactionModal,
   setExpenseEditing,
-}: ExpensePageProps) {
+  setIncomeEditing,
+  setExpenses,
+  setIncomes,
+  setBalance,
+}: TransactionPageProps) {
   return (
     <>
       <div className="mt-6">
@@ -78,12 +87,18 @@ export default function ExpensePage({
           />
         </div>
         {isLoading && <p>Loading....</p>}
-        {!isLoading && filteredExpenses && (
-          <ExpenseList
+        {!isLoading && (
+          <TransactionList
+            view={view}
             expenses={filteredExpenses}
+            incomes={filteredIncomes}
             categories={categories}
-            setIsEditExpenseModal={setIsEditExpenseModal}
+            setIsEditTransactionModal={setIsEditTransactionModal}
             setExpenseEditing={setExpenseEditing}
+            setIncomeEditing={setIncomeEditing}
+            setExpenses={setExpenses}
+            setIncomes={setIncomes}
+            setBalance={setBalance}
           />
         )}
       </div>

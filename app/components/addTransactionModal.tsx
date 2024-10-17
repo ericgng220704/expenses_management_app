@@ -11,80 +11,102 @@ import {
   TransitionChild,
   Field,
 } from "@headlessui/react";
-import { Category } from "@/app/types/category";
-import { Expense } from "@/app/types/expense";
+import { Category } from "../types/category";
+import { Expense } from "../types/expense";
 import toast from "react-hot-toast";
-import { Balance } from "@/app/types/balance";
+import { Balance } from "../types/balance";
+import { Income } from "../types/income";
 
-type EditExpenseModalProps = {
+type AddTransactionModalProps = {
+  view: string;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   categories: Category[];
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
+  setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
   setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
-  selectedExpense: Expense;
 };
 
-export default function EditExpenseModal({
+export default function AddTransactionModal({
+  view,
   isOpen,
   setIsOpen,
   categories,
   setExpenses,
+  setIncomes,
   setBalance,
-  selectedExpense,
-}: EditExpenseModalProps) {
-  const [title, setTitle] = useState(selectedExpense.title);
-  const [category, setCategory] = useState(
-    selectedExpense.category.id.toString()
-  );
-  const [amount, setAmount] = useState(
-    (selectedExpense.amount / 100).toString()
-  );
-  const [date, setDate] = useState(
-    new Date(selectedExpense.date).toISOString().split("T")[0]
-  );
-  const [note, setNote] = useState(selectedExpense.note);
-  const [payer, setPayer] = useState(selectedExpense.payer);
+}: AddTransactionModalProps) {
+  const isExpenseView = view === "Expenses";
+  const initCategory = isExpenseView ? "1" : "9";
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState(initCategory);
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [note, setNote] = useState("");
+  const [authorizer, setAuthorizer] = useState("");
   const [submitDisable, setSubmitDisable] = useState(false);
+
+  const resetModal = () => {
+    setTitle("");
+    setCategory("1");
+    setAmount("");
+    setDate(new Date().toISOString().split("T")[0]);
+    setNote("");
+    setAuthorizer("");
+    setSubmitDisable(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setSubmitDisable(true);
 
-    const editedExpenseData = {
-      id: selectedExpense.id,
+    const newTransactionData = {
       title,
       category,
       amount: parseFloat(amount) * 100,
       date,
       note,
-      payer,
+      authorizer,
     };
 
     try {
-      const response = await fetch("/api/expenses", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editedExpenseData),
-      });
+      const response = await fetch(
+        `/api/${isExpenseView ? "expenses" : "income"}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newTransactionData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Something went wrong");
       }
 
-      const { balance, expenses } = await response.json();
+      if (isExpenseView) {
+        const { balance, expenses } = await response.json();
 
-      setBalance(balance);
-      setExpenses(expenses);
+        setBalance(balance);
+
+        toast.success("Expense added successfully!");
+        setExpenses(expenses);
+      } else {
+        const { balance, incomes } = await response.json();
+
+        setBalance(balance);
+
+        toast.success("Income added successfully!");
+        setIncomes(incomes);
+      }
+
       setIsOpen(false);
-
-      toast.success("Expense edited successfully!");
+      resetModal();
     } catch (error) {
       console.error(error);
-      toast.error("Error adding expense");
+      toast.error("Error adding transaction");
       setSubmitDisable(false);
     }
   };
@@ -129,7 +151,7 @@ export default function EditExpenseModal({
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Edit Expense
+                    Add New {isExpenseView ? "Expense" : "Income"}
                   </DialogTitle>
 
                   <form onSubmit={handleSubmit} className="mt-4">
@@ -206,12 +228,12 @@ export default function EditExpenseModal({
 
                     <Field className="mb-4">
                       <Label className="block text-sm font-medium text-gray-700">
-                        Payer
+                        {isExpenseView ? "Payer" : "Receiver"}
                       </Label>
                       <input
                         type="text"
-                        value={payer}
-                        onChange={(e) => setPayer(e.target.value)}
+                        value={authorizer}
+                        onChange={(e) => setAuthorizer(e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                         required
                       />
@@ -227,7 +249,7 @@ export default function EditExpenseModal({
                         } font-medium text-sm leading-5 rounded-md focus:outline-none`}
                         disabled={submitDisable}
                       >
-                        Save
+                        Add {isExpenseView ? "Expense" : "Income"}
                       </button>
                     </Field>
                   </form>

@@ -1,5 +1,5 @@
-import { Category } from "../../types/category";
-import Icon from "../icons";
+import { Category } from "../types/category";
+import Icon from "./icons";
 
 type CategoryListProps = {
   categories: Category[];
