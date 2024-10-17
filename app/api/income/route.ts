@@ -28,11 +28,11 @@ export async function POST(req: Request) {
     }
 
     const {
-      newExpense,
+      newIncome,
       balance: returnBalance,
-      expenses,
+      incomes,
     } = await prisma.$transaction(async (prisma) => {
-      const newExpense = await prisma.expense.create({
+      const newIncome = await prisma.income.create({
         data: {
           title: title,
           category_id: parseInt(category),
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
           balanceBefore: balance.amount,
           date: new Date(date),
           note,
-          payer: authorizer,
+          receiver: authorizer,
         },
       });
 
@@ -50,11 +50,11 @@ export async function POST(req: Request) {
           id: balance.id,
         },
         data: {
-          amount: balance.amount - newExpense.amount,
+          amount: balance.amount + newIncome.amount,
         },
       });
 
-      const expenses = await prisma.expense.findMany({
+      const incomes = await prisma.income.findMany({
         include: {
           category: true,
         },
@@ -64,21 +64,21 @@ export async function POST(req: Request) {
       });
 
       return {
-        newExpense,
+        newIncome,
         balance: returnBalance,
-        expenses,
+        incomes,
       };
     });
 
     return NextResponse.json({
-      newExpense,
+      newIncome,
       balance: returnBalance,
-      expenses,
+      incomes,
     });
   } catch (e) {
     console.log(e);
     return NextResponse.json(
-      { message: `Failed to add expense` },
+      { message: `Failed to add income` },
       { status: 500 }
     );
   }
@@ -109,11 +109,11 @@ export async function GET(req: Request) {
         .padStart(2, "0")}-01`;
     }
 
-    let expenses;
+    let incomes;
 
     if (all) {
       // Fetch all expenses if "all" is true
-      expenses = await prisma.expense.findMany({
+      incomes = await prisma.income.findMany({
         include: {
           category: true,
         },
@@ -123,7 +123,7 @@ export async function GET(req: Request) {
       });
     } else if (selectedMonth && selectedYear) {
       // Fetch expenses for the selected month and year
-      expenses = await prisma.expense.findMany({
+      incomes = await prisma.income.findMany({
         where: {
           date: {
             gte: new Date(startDate),
@@ -139,7 +139,7 @@ export async function GET(req: Request) {
       });
     } else {
       // Fetch all expenses if no specific month and year is selected
-      expenses = await prisma.expense.findMany({
+      incomes = await prisma.income.findMany({
         include: {
           category: true,
         },
@@ -149,11 +149,11 @@ export async function GET(req: Request) {
       });
     }
 
-    return NextResponse.json({ expenses });
+    return NextResponse.json({ incomes });
   } catch (e) {
     console.log(e);
     return NextResponse.json(
-      { message: "Failed to fetch expenses" },
+      { message: "Failed to fetch incomes" },
       { status: 500 }
     );
   }
@@ -166,25 +166,25 @@ export async function PUT(req: Request) {
 
     const balance = await prisma.balance.findFirst({});
 
-    const selectedExpense = await prisma.expense.findFirst({
+    const selectedIncome = await prisma.income.findFirst({
       where: {
         id: parseInt(id),
       },
     });
 
-    if (!balance || !selectedExpense) {
+    if (!balance || !selectedIncome) {
       return;
     }
 
-    const revertedBalance = balance.amount + selectedExpense.amount;
-    const modifiedBalance = revertedBalance - parseInt(amount);
+    const revertedBalance = balance.amount - selectedIncome.amount;
+    const modifiedBalance = revertedBalance + parseInt(amount);
 
     const {
-      editedExpense,
+      editedIncome,
       balance: returnBalance,
-      expenses,
+      incomes,
     } = await prisma.$transaction(async (prisma) => {
-      const editedExpense = await prisma.expense.update({
+      const editedIncome = await prisma.income.update({
         where: {
           id: parseInt(id),
         },
@@ -196,7 +196,7 @@ export async function PUT(req: Request) {
           balanceBefore: revertedBalance,
           date: new Date(date),
           note,
-          payer: authorizer,
+          receiver: authorizer,
         },
       });
 
@@ -209,7 +209,7 @@ export async function PUT(req: Request) {
         },
       });
 
-      const expenses = await prisma.expense.findMany({
+      const incomes = await prisma.income.findMany({
         include: {
           category: true,
         },
@@ -219,21 +219,21 @@ export async function PUT(req: Request) {
       });
 
       return {
-        editedExpense,
+        editedIncome,
         balance: returnBalance,
-        expenses,
+        incomes,
       };
     });
 
     return NextResponse.json({
-      editedExpense,
+      editedIncome,
       balance: returnBalance,
-      expenses,
+      incomes,
     });
   } catch (e) {
     console.log(e);
     return NextResponse.json(
-      { message: "Failed to modify expense" },
+      { message: "Failed to modify income" },
       { status: 500 }
     );
   }
@@ -244,20 +244,20 @@ export async function DELETE(req: Request) {
     const { id } = await req.json();
     const balance = await prisma.balance.findFirst({});
 
-    const selectedExpense = await prisma.expense.findFirst({
+    const selectedIncome = await prisma.income.findFirst({
       where: {
         id: parseInt(id),
       },
     });
 
-    if (!balance || !selectedExpense) {
+    if (!balance || !selectedIncome) {
       return;
     }
 
     const { returnBalance } = await prisma.$transaction(async (prisma) => {
-      await prisma.expense.delete({
+      await prisma.income.delete({
         where: {
-          id: selectedExpense.id,
+          id: selectedIncome.id,
         },
       });
 
@@ -266,14 +266,14 @@ export async function DELETE(req: Request) {
           id: balance.id,
         },
         data: {
-          amount: balance.amount + selectedExpense.amount,
+          amount: balance.amount - selectedIncome.amount,
         },
       });
 
       return { returnBalance };
     });
 
-    const expenses = await prisma.expense.findMany({
+    const incomes = await prisma.income.findMany({
       include: {
         category: true,
       },
@@ -282,11 +282,11 @@ export async function DELETE(req: Request) {
       },
     });
 
-    return NextResponse.json({ balance: returnBalance, expenses });
+    return NextResponse.json({ balance: returnBalance, incomes });
   } catch (e) {
     console.log(e);
     return NextResponse.json(
-      { message: "Failed to delete expense" },
+      { message: "Failed to delete income" },
       { status: 500 }
     );
   }

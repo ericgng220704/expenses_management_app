@@ -1,29 +1,18 @@
 "use client";
 
 import TotalBalance from "./components/totalBalance";
-import CategoryList from "./components/categoryList";
-import ExpenseList from "./components/expenseList";
 import { useEffect, useState } from "react";
-import AddExpenseModal from "./components/addExpenseModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faPen,
-  faMagnifyingGlass,
-  faChevronDown,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  Button,
-  Field,
-  Select,
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-} from "@headlessui/react";
+import { faPen } from "@fortawesome/free-solid-svg-icons";
+import { Button, Field, Select } from "@headlessui/react";
 import { Expense } from "./types/expense";
 import Summary from "./components/summary";
 import BarChart from "./components/barChart";
-import EditExpenseModal from "./components/editExpenseModal";
 import { Balance } from "./types/balance";
+import { Income } from "./types/income";
+import TransactionPage from "./components/transactionPage";
+import AddTransactionModal from "./components/addTransactionModal";
+import EditTransactionModal from "./components/editTransactionModal";
 
 const months = [
   "January",
@@ -43,22 +32,28 @@ const months = [
 const today = new Date();
 
 export default function Home() {
-  const [isAddExpenseModal, setIsAddExpenseModal] = useState(false);
-  const [isEditExpenseModal, setIsEditExpenseModal] = useState(false);
-  const [expenseEditing, setExpenseEditing] = useState<Expense>();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [categories, setCategories] = useState([]);
+  // Both
   const [availableYears, setAvailableYears] = useState([]);
   const [balance, setBalance] = useState<Balance>();
-  const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedMonth, setSelectedMonth] = useState(months[today.getMonth()]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isAddTransactionModal, setIsAddTransactionModal] = useState(false);
 
-  const [selected, setSelected] = useState("Expenses");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [view, setView] = useState("Expenses");
+  // Expense
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  const [isEditTransactionModal, setIsEditTransactionModal] = useState(false);
+  const [expenseEditing, setExpenseEditing] = useState<Expense>();
+
+  // Income
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [incomeEditing, setIncomeEditing] = useState<Income>();
 
   // Initialization call (fetchAll)
   useEffect(() => {
@@ -66,23 +61,23 @@ export default function Home() {
       await fetchAll();
     };
     initData();
-  }, []);
+  }, [view, expenses, incomes]);
 
   // Fetch expenses based on user-selected month/year or when "All" is selected
   useEffect(() => {
     if (selectedMonth === "" && selectedYear === "") {
       // User has selected "All"
-      fetchAllExpenses();
+      fetchAllEntity();
     } else {
-      fetchExpenses();
+      fetchEntity();
     }
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, view]);
 
   // Fetch all data (categories, available years, etc.)
   const fetchAll = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/all");
+      const response = await fetch(`/api/all?view=${view}`);
 
       const { categories, availableYears, balance } = await response.json();
 
@@ -97,33 +92,49 @@ export default function Home() {
     }
   };
 
-  // Fetch only expenses for the selected month and year
-  const fetchExpenses = async () => {
+  // Fetch only expenses/incomes for the selected month and year
+  const fetchEntity = async () => {
     try {
       setIsLoading(true);
+
       const response = await fetch(
-        `/api/expenses?selectedMonth=${selectedMonth}&&selectedYear=${selectedYear}`
+        `/api/${
+          view === "Expenses" ? "expenses" : "income"
+        }?selectedMonth=${selectedMonth}&&selectedYear=${selectedYear}`
       );
-      const { expenses } = await response.json();
-      setExpenses(expenses);
+      if (view === "Expenses") {
+        const { expenses } = await response.json();
+        setExpenses(expenses);
+      } else {
+        const { incomes } = await response.json();
+        setIncomes(incomes);
+      }
     } catch (e) {
       console.log(e);
-      alert("Error fetching expenses");
+      alert("Error fetching entity");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Fetch all expenses (used when "All" is selected)
-  const fetchAllExpenses = async () => {
+  const fetchAllEntity = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/expenses?all=true");
-      const { expenses } = await response.json();
-      setExpenses(expenses);
+
+      const response = await fetch(
+        `/api/${view === "Expenses" ? "expenses" : "income"}?all=true`
+      );
+      if (view === "Expenses") {
+        const { expenses } = await response.json();
+        setExpenses(expenses);
+      } else {
+        const { incomes } = await response.json();
+        setIncomes(incomes);
+      }
     } catch (e) {
       console.log(e);
-      alert("Error fetching all expenses");
+      alert("Error fetching all Entity");
     } finally {
       setIsLoading(false);
     }
@@ -143,11 +154,24 @@ export default function Home() {
     return expenses;
   };
 
+  const incomesFilter = (incomes: Income[]) => {
+    incomes = incomes.filter((income) => income.title.includes(searchTerm));
+
+    if (selectedCategories.length > 0) {
+      incomes = incomes.filter((income) =>
+        selectedCategories.find((category) => category === income.category.name)
+      );
+    }
+
+    return incomes;
+  };
+
   const handleToggle = () => {
-    setSelected((prev) => (prev === "Expenses" ? "Income" : "Expenses"));
+    setView((prev) => (prev === "Expenses" ? "Income" : "Expenses"));
   };
 
   const filteredExpenses = expenseFilter(expenses);
+  const filteredIncomes = incomesFilter(incomes);
   return (
     <div className="flex justify-center items-start w-full bg-slate-50">
       <div className="py-4 px-3 sm:p-8 w-full sm:max-w-4xl">
@@ -155,12 +179,14 @@ export default function Home() {
           {balance && <TotalBalance balance={balance} />}
           <button
             className="py-2 px-4 sm:p-4 bg-black text-white rounded-xl whitespace-nowrap h-fit"
-            onClick={() => setIsAddExpenseModal(true)}
+            onClick={() => setIsAddTransactionModal(true)}
           >
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faPen} />{" "}
               <div className="flex items-center gap-1">
-                <span className="sm:block hidden">Expense</span>
+                <span className="sm:block hidden">
+                  {view === "Expenses" ? "Expense" : "Income"}
+                </span>
                 <span>New +</span>
               </div>
             </div>
@@ -173,14 +199,14 @@ export default function Home() {
           >
             <button
               className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out ${
-                selected === "Expenses" ? "bg-black text-white" : "text-black"
+                view === "Expenses" ? "bg-black text-white" : "text-black"
               }`}
             >
               Expenses
             </button>
             <button
               className={`px-4 py-2 rounded-full transition-all duration-300 ease-in-out ${
-                selected === "Income" ? "bg-black text-white" : "text-black"
+                view === "Income" ? "bg-black text-white" : "text-black"
               }`}
             >
               Income
@@ -240,7 +266,12 @@ export default function Home() {
 
         <div className="mt-8 text-center rounded-xl">
           {categories && expenses ? (
-            <BarChart expenses={expenses} categories={categories} />
+            <BarChart
+              view={view}
+              incomes={incomes}
+              expenses={expenses}
+              categories={categories}
+            />
           ) : (
             <p>Loading Bar Chart...</p>
           )}
@@ -248,78 +279,55 @@ export default function Home() {
 
         <div className="mt-8 text-center">
           <Summary
+            view={view}
             expenses={expenses}
+            incomes={incomes}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
         </div>
 
-        <div className="mt-6">
-          <Disclosure defaultOpen={true}>
-            <DisclosureButton className="group flex items-center gap-2">
-              <h2 className="text-base sm:text-xl mb-2">Categories</h2>
-              <FontAwesomeIcon
-                className="group-data-[open]:rotate-180 mb-2"
-                icon={faChevronDown}
-              />
-            </DisclosureButton>
-            <DisclosurePanel>
-              {categories && (
-                <CategoryList
-                  categories={categories}
-                  selectedCategories={selectedCategories}
-                  setSelectedCategories={setSelectedCategories}
-                />
-              )}
-            </DisclosurePanel>
-          </Disclosure>
-        </div>
-
-        <div className="mt-8">
-          <div className="flex gap-0 items-center h-11 bg-white mb-4 rounded-xl w-full">
-            <FontAwesomeIcon className="p-4" icon={faMagnifyingGlass} />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full focus:outline-none focus:border-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          {isLoading && <p>Loading....</p>}
-          {!isLoading && filteredExpenses && (
-            <ExpenseList
-              expenses={filteredExpenses}
-              categories={categories}
-              setIsEditExpenseModal={setIsEditExpenseModal}
-              setExpenseEditing={setExpenseEditing}
-            />
-          )}
-        </div>
-
-        {/* <div className="mt-8 flex justify-between">
-          <button className="px-4 py-2 border rounded-lg">Previous</button>
-          <button className="px-4 py-2 border rounded-lg">Next</button>
-        </div> */}
+        <TransactionPage
+          view={view}
+          categories={categories}
+          selectedCategories={selectedCategories}
+          setSelectedCategories={setSelectedCategories}
+          setSearchTerm={setSearchTerm}
+          setIsEditTransactionModal={setIsEditTransactionModal}
+          setExpenseEditing={setExpenseEditing}
+          setIncomeEditing={setIncomeEditing}
+          searchTerm={searchTerm}
+          isLoading={isLoading}
+          filteredExpenses={filteredExpenses}
+          filteredIncomes={filteredIncomes}
+          setExpenses={setExpenses}
+          setIncomes={setIncomes}
+          setBalance={setBalance}
+        />
       </div>
       {categories && (
-        <AddExpenseModal
-          isOpen={isAddExpenseModal}
-          setIsOpen={setIsAddExpenseModal}
+        <AddTransactionModal
+          view={view}
+          isOpen={isAddTransactionModal}
+          setIsOpen={setIsAddTransactionModal}
           categories={categories}
           setExpenses={setExpenses}
+          setIncomes={setIncomes}
           setBalance={setBalance}
         />
       )}
 
-      {isEditExpenseModal && expenseEditing && (
-        <EditExpenseModal
-          isOpen={isEditExpenseModal}
-          setIsOpen={setIsEditExpenseModal}
+      {isEditTransactionModal && (
+        <EditTransactionModal
+          view={view}
+          isOpen={isEditTransactionModal}
+          setIsOpen={setIsEditTransactionModal}
           categories={categories}
           setExpenses={setExpenses}
+          setIncomes={setIncomes}
           setBalance={setBalance}
           selectedExpense={expenseEditing}
+          selectedIncome={incomeEditing}
         />
       )}
     </div>

@@ -15,28 +15,35 @@ import { Category } from "../types/category";
 import { Expense } from "../types/expense";
 import toast from "react-hot-toast";
 import { Balance } from "../types/balance";
+import { Income } from "../types/income";
 
-type AddExpenseModalProps = {
+type AddTransactionModalProps = {
+  view: string;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   categories: Category[];
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
+  setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
   setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
 };
 
-export default function AddExpenseModal({
+export default function AddTransactionModal({
+  view,
   isOpen,
   setIsOpen,
   categories,
   setExpenses,
+  setIncomes,
   setBalance,
-}: AddExpenseModalProps) {
+}: AddTransactionModalProps) {
+  const isExpenseView = view === "Expenses";
+  const initCategory = isExpenseView ? "1" : "9";
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("1");
+  const [category, setCategory] = useState(initCategory);
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [note, setNote] = useState("");
-  const [payer, setPayer] = useState("");
+  const [authorizer, setAuthorizer] = useState("");
   const [submitDisable, setSubmitDisable] = useState(false);
 
   const resetModal = () => {
@@ -45,7 +52,7 @@ export default function AddExpenseModal({
     setAmount("");
     setDate(new Date().toISOString().split("T")[0]);
     setNote("");
-    setPayer("");
+    setAuthorizer("");
     setSubmitDisable(false);
   };
 
@@ -54,39 +61,52 @@ export default function AddExpenseModal({
 
     setSubmitDisable(true);
 
-    const newExpenseData = {
+    const newTransactionData = {
       title,
       category,
       amount: parseFloat(amount) * 100,
       date,
       note,
-      payer,
+      authorizer,
     };
 
     try {
-      const response = await fetch("/api/expenses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newExpenseData),
-      });
+      const response = await fetch(
+        `/api/${isExpenseView ? "expenses" : "income"}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newTransactionData),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Something went wrong");
       }
 
-      const { balance, expenses } = await response.json();
+      if (isExpenseView) {
+        const { balance, expenses } = await response.json();
 
-      setBalance(balance);
+        setBalance(balance);
 
-      toast.success("Expense added successfully!");
-      setExpenses(expenses);
+        toast.success("Expense added successfully!");
+        setExpenses(expenses);
+      } else {
+        const { balance, incomes } = await response.json();
+
+        setBalance(balance);
+
+        toast.success("Income added successfully!");
+        setIncomes(incomes);
+      }
+
       setIsOpen(false);
       resetModal();
     } catch (error) {
       console.error(error);
-      toast.error("Error adding expense");
+      toast.error("Error adding transaction");
       setSubmitDisable(false);
     }
   };
@@ -131,7 +151,7 @@ export default function AddExpenseModal({
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Add New Expense
+                    Add New {isExpenseView ? "Expense" : "Income"}
                   </DialogTitle>
 
                   <form onSubmit={handleSubmit} className="mt-4">
@@ -208,12 +228,12 @@ export default function AddExpenseModal({
 
                     <Field className="mb-4">
                       <Label className="block text-sm font-medium text-gray-700">
-                        Payer
+                        {isExpenseView ? "Payer" : "Receiver"}
                       </Label>
                       <input
                         type="text"
-                        value={payer}
-                        onChange={(e) => setPayer(e.target.value)}
+                        value={authorizer}
+                        onChange={(e) => setAuthorizer(e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                         required
                       />
@@ -229,7 +249,7 @@ export default function AddExpenseModal({
                         } font-medium text-sm leading-5 rounded-md focus:outline-none`}
                         disabled={submitDisable}
                       >
-                        Add Expense
+                        Add {isExpenseView ? "Expense" : "Income"}
                       </button>
                     </Field>
                   </form>

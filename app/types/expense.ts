@@ -6,6 +6,7 @@ export interface Expense {
     name: string;
     icon: string;
     color: string;
+    type: string;
   };
   balanceBefore: number;
   balanceAfter: number;
