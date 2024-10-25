@@ -1,4 +1,4 @@
-import { Balance } from "../types/balance";
+import { Balance } from "@/app/types/balance";
 
 type TotalBalanceProps = {
   balance: Balance;

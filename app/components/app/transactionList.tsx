@@ -4,7 +4,7 @@ import { colorMap } from "@/app/types/colorMap";
 import { Category } from "@/app/types/category";
 import Icon from "./icons";
 import { Expense } from "@/app/types/expense";
-import { Income } from "../types/income";
+import { Income } from "@/app/types/income";
 import {
   SwipeableList,
   SwipeableListItem,
@@ -13,7 +13,7 @@ import {
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
 import toast from "react-hot-toast";
-import { Balance } from "../types/balance";
+import { Balance } from "@/app/types/balance";
 
 type TransactionListProps = {
   view: string;

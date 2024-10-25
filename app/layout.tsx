@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,29 +26,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            success: {
-              style: {
-                background: "green",
-                color: "white",
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+          <Toaster
+            position="bottom-center"
+            toastOptions={{
+              success: {
+                style: {
+                  background: "green",
+                  color: "white",
+                },
               },
-            },
-            error: {
-              style: {
-                background: "red",
-                color: "white",
+              error: {
+                style: {
+                  background: "red",
+                  color: "white",
+                },
               },
-            },
-          }}
-        />
-      </body>
-    </html>
+            }}
+          />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

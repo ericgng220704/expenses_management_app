@@ -8,9 +8,10 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Expense } from "../types/expense";
-import { Category } from "../types/category";
-import { Income } from "../types/income";
+
+import { Category } from "@/app/types/category";
+import { Expense } from "@/app/types/expense";
+import { Income } from "@/app/types/income";
 
 ChartJS.register(
   CategoryScale,

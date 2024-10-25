@@ -13,9 +13,9 @@ import {
 import { Category } from "@/app/types/category";
 import CategoryList from "./categoryList";
 import { Expense } from "@/app/types/expense";
-import { Income } from "../types/income";
+import { Income } from "@/app/types/income";
 import TransactionList from "./transactionList";
-import { Balance } from "../types/balance";
+import { Balance } from "@/app/types/balance";
 
 type TransactionPageProps = {
   view: string;

@@ -8,15 +8,26 @@ generator client {
   output   = "../node_modules/.prisma/client"
 }
 
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  balances       UserBalance[]
+  created_at     DateTime  @default(now())
+}
+
 model Balance {
   id             Int       @id @default(autoincrement())
   amount         Int
+  users          UserBalance[]
+  expenses       Expense[]
+  incomes        Income[]
 }
 
 model Expense {
   id             Int       @id @default(autoincrement())
   title          String
-  category       Category @relation(fields: [category_id], references: [id])
+  category       Category  @relation(fields: [category_id], references: [id])
   category_id    Int
   amount         Int
   balanceBefore  Int
@@ -24,13 +35,15 @@ model Expense {
   date           DateTime
   note           String?
   payer          String
-  created_at     DateTime @default(now())
+  created_at     DateTime  @default(now())
+  balance        Balance   @relation(fields: [balanceId], references: [id])
+  balanceId      Int
 }
 
 model Income {
   id             Int       @id @default(autoincrement())
   title          String
-  category       Category @relation(fields: [category_id], references: [id])
+  category       Category  @relation(fields: [category_id], references: [id])
   category_id    Int
   amount         Int
   balanceBefore  Int
@@ -38,7 +51,9 @@ model Income {
   date           DateTime
   note           String?
   receiver       String
-  created_at     DateTime @default(now())
+  created_at     DateTime  @default(now())
+  balance        Balance   @relation(fields: [balanceId], references: [id])
+  balanceId      Int
 }
 
 model Category {
@@ -49,4 +64,12 @@ model Category {
   type     String
   expenses Expense[]
   incomes  Income[]
+}
+
+model UserBalance {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  balance    Balance  @relation(fields: [balanceId], references: [id])
+  balanceId  Int
 }

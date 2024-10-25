@@ -15,8 +15,8 @@ import {
   faTags,
   IconDefinition, // Import IconDefinition for proper typing
 } from "@fortawesome/free-solid-svg-icons";
-import { Category } from "../types/category";
-import { colorMap } from "../types/colorMap";
+import { Category } from "@/app/types/category";
+import { colorMap } from "@/app/types/colorMap";
 
 // Define the iconMap with the correct type using IconDefinition
 const iconMap: Record<string, IconDefinition> = {

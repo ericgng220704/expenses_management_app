@@ -11,11 +11,11 @@ import {
   TransitionChild,
   Field,
 } from "@headlessui/react";
-import { Category } from "../types/category";
-import { Expense } from "../types/expense";
+import { Category } from "@/app/types/category";
+import { Expense } from "@/app/types/expense";
 import toast from "react-hot-toast";
-import { Balance } from "../types/balance";
-import { Income } from "../types/income";
+import { Balance } from "@/app/types/balance";
+import { Income } from "@/app/types/income";
 
 type AddTransactionModalProps = {
   view: string;

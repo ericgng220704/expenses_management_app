@@ -1,5 +1,5 @@
-import { Expense } from "../types/expense";
-import { Income } from "../types/income";
+import { Expense } from "@/app/types/expense";
+import { Income } from "@/app/types/income";
 
 type SummaryProps = {
   view: string;

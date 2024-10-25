@@ -1,4 +1,4 @@
-import { Category } from "../types/category";
+import { Category } from "@/app/types/category";
 import Icon from "./icons";
 
 type CategoryListProps = {
