@@ -27,6 +27,7 @@ type EditTransactionModalProps = {
   setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
   selectedExpense: Expense | undefined;
   selectedIncome: Income | undefined;
+  user: any;
 };
 
 export default function EditTransactionModal({
@@ -39,6 +40,7 @@ export default function EditTransactionModal({
   setBalance,
   selectedExpense,
   selectedIncome,
+  user,
 }: EditTransactionModalProps) {
   const isExpenseView = view === "Expenses";
   const selectedTransaction = isExpenseView ? selectedExpense : selectedIncome;
@@ -78,6 +80,7 @@ export default function EditTransactionModal({
       date,
       note,
       authorizer,
+      balanceId: user.using_balance_id,
     };
 
     try {

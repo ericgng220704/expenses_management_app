@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/app/lib/prisma"; // Prisma client singleton import
+import prisma from "@/app/lib/prisma";
+import { withAuthApi } from "@/app/auth/withAuth";
 
-export async function GET(req: Request) {
+async function getHandler(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const view = searchParams.get("view");
+    const balanceId = searchParams.get("balanceId") || "1";
 
     // Fetch categories
     const categories = await prisma.category.findMany({
@@ -16,7 +18,11 @@ export async function GET(req: Request) {
     let listOfAvailableYears = [];
 
     if (view === "Expenses") {
-      const expensesAll = await prisma.expense.findMany();
+      const expensesAll = await prisma.expense.findMany({
+        where: {
+          balanceId: parseInt(balanceId),
+        },
+      });
 
       // Extract available years from expenses
       listOfAvailableYears = expensesAll.map((expense) => {
@@ -24,7 +30,11 @@ export async function GET(req: Request) {
         return expenseDate.getFullYear();
       });
     } else {
-      const incomesAll = await prisma.income.findMany();
+      const incomesAll = await prisma.income.findMany({
+        where: {
+          balanceId: parseInt(balanceId),
+        },
+      });
 
       // Extract available years from incomes
       listOfAvailableYears = incomesAll.map((income) => {
@@ -37,7 +47,11 @@ export async function GET(req: Request) {
     const uniqueYears = [...new Set(listOfAvailableYears)];
 
     // Fetch latest transaction
-    const balance = await prisma.balance.findFirst({});
+    const balance = await prisma.balance.findFirst({
+      where: {
+        id: parseInt(balanceId),
+      },
+    });
 
     return NextResponse.json({
       categories,
@@ -52,3 +66,5 @@ export async function GET(req: Request) {
     );
   }
 }
+
+export const GET = withAuthApi(getHandler);

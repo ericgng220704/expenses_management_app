@@ -2,8 +2,8 @@ import { UserButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 
 export default async function DashboardNav() {
-  const user = await currentUser();
-  if (!user) return <div>Not signed in</div>;
+  const userClerk = await currentUser();
+  if (!userClerk) return <div>Not signed in</div>;
 
   return (
     <nav className="bg-white shadow-md py-4">
@@ -14,7 +14,7 @@ export default async function DashboardNav() {
           </a>
         </div>
         <div className="flex items-center space-x-4">
-          <span>Hi, {user.firstName}!</span>
+          <span>Hi, {userClerk.firstName}!</span>
           <UserButton></UserButton>
         </div>
       </div>

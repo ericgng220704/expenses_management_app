@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { SignInButton, SignOutButton } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default async function HomeNav() {
   const user = await currentUser();
@@ -46,12 +47,12 @@ export default async function HomeNav() {
               </SignOutButton>
 
               {/* Dashboard Button */}
-              <a
+              <Link
                 href="/dashboard"
                 className="bg-black text-white px-4 py-2 rounded-md"
               >
                 Dashboard
-              </a>
+              </Link>
             </>
           ) : (
             <SignInButton>

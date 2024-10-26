@@ -33,6 +33,7 @@ type TransactionPageProps = {
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
   setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
   setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
+  user: any;
 };
 
 export default function TransactionPage({
@@ -51,6 +52,7 @@ export default function TransactionPage({
   setExpenses,
   setIncomes,
   setBalance,
+  user,
 }: TransactionPageProps) {
   return (
     <>
@@ -99,6 +101,7 @@ export default function TransactionPage({
             setExpenses={setExpenses}
             setIncomes={setIncomes}
             setBalance={setBalance}
+            user={user}
           />
         )}
       </div>

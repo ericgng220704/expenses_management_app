@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma"; // Prisma client singleton import
+import { withAuthApi } from "@/app/auth/withAuth";
 
 const months = [
   "January",
@@ -16,15 +17,22 @@ const months = [
   "December",
 ];
 
-export async function POST(req: Request) {
+async function postHandler(req: Request) {
   try {
-    const { title, category, amount, date, note, authorizer } =
+    const { title, category, amount, date, note, authorizer, balanceId } =
       await req.json();
 
-    const balance = await prisma.balance.findFirst({});
+    const balance = await prisma.balance.findFirst({
+      where: {
+        id: parseInt(balanceId),
+      },
+    });
 
     if (!balance) {
-      return;
+      return NextResponse.json(
+        { message: "Failed to retreive balance" },
+        { status: 500 }
+      );
     }
 
     const {
@@ -42,6 +50,7 @@ export async function POST(req: Request) {
           date: new Date(date),
           note,
           payer: authorizer,
+          balanceId: balance.id,
         },
       });
 
@@ -84,12 +93,13 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+async function getHandler(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const selectedMonth = searchParams.get("selectedMonth") || "";
     const selectedYear = searchParams.get("selectedYear") || "";
     const all = searchParams.get("all") === "true"; // Convert to boolean
+    const balanceId = searchParams.get("balanceId") || "1";
 
     const monthIndex = months.indexOf(selectedMonth) + 1; // Get 1-based month index
 
@@ -114,6 +124,9 @@ export async function GET(req: Request) {
     if (all) {
       // Fetch all expenses if "all" is true
       expenses = await prisma.expense.findMany({
+        where: {
+          balanceId: parseInt(balanceId),
+        },
         include: {
           category: true,
         },
@@ -125,6 +138,7 @@ export async function GET(req: Request) {
       // Fetch expenses for the selected month and year
       expenses = await prisma.expense.findMany({
         where: {
+          balanceId: parseInt(balanceId),
           date: {
             gte: new Date(startDate),
             lt: new Date(endDate), // End date is exclusive
@@ -140,6 +154,9 @@ export async function GET(req: Request) {
     } else {
       // Fetch all expenses if no specific month and year is selected
       expenses = await prisma.expense.findMany({
+        where: {
+          balanceId: parseInt(balanceId),
+        },
         include: {
           category: true,
         },
@@ -159,12 +176,16 @@ export async function GET(req: Request) {
   }
 }
 
-export async function PUT(req: Request) {
+async function putHandler(req: Request) {
   try {
-    const { id, title, category, amount, date, note, authorizer } =
+    const { id, title, category, amount, date, note, authorizer, balanceId } =
       await req.json();
 
-    const balance = await prisma.balance.findFirst({});
+    const balance = await prisma.balance.findFirst({
+      where: {
+        id: parseInt(balanceId),
+      },
+    });
 
     const selectedExpense = await prisma.expense.findFirst({
       where: {
@@ -173,7 +194,10 @@ export async function PUT(req: Request) {
     });
 
     if (!balance || !selectedExpense) {
-      return;
+      return NextResponse.json(
+        { message: "Cant find the balance and selectedExpense" },
+        { status: 500 }
+      );
     }
 
     const revertedBalance = balance.amount + selectedExpense.amount;
@@ -202,7 +226,7 @@ export async function PUT(req: Request) {
 
       const returnBalance = await prisma.balance.update({
         where: {
-          id: 1,
+          id: balance.id,
         },
         data: {
           amount: modifiedBalance,
@@ -210,6 +234,9 @@ export async function PUT(req: Request) {
       });
 
       const expenses = await prisma.expense.findMany({
+        where: {
+          balanceId: balance.id,
+        },
         include: {
           category: true,
         },
@@ -239,10 +266,14 @@ export async function PUT(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+async function deleteHandler(req: Request) {
   try {
-    const { id } = await req.json();
-    const balance = await prisma.balance.findFirst({});
+    const { id, balanceId } = await req.json();
+    const balance = await prisma.balance.findFirst({
+      where: {
+        id: parseInt(balanceId),
+      },
+    });
 
     const selectedExpense = await prisma.expense.findFirst({
       where: {
@@ -251,7 +282,10 @@ export async function DELETE(req: Request) {
     });
 
     if (!balance || !selectedExpense) {
-      return;
+      return NextResponse.json(
+        { message: "Cant find the balance and selectedExpense" },
+        { status: 500 }
+      );
     }
 
     const { returnBalance } = await prisma.$transaction(async (prisma) => {
@@ -291,3 +325,8 @@ export async function DELETE(req: Request) {
     );
   }
 }
+
+export const POST = withAuthApi(postHandler);
+export const GET = withAuthApi(getHandler);
+export const PUT = withAuthApi(putHandler);
+export const DELETE = withAuthApi(deleteHandler);

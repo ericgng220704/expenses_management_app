@@ -9,15 +9,17 @@ generator client {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  name           String
-  balances       UserBalance[]
-  created_at     DateTime  @default(now())
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String
+  using_balance_id Int?
+  balances         UserBalance[]
+  created_at       DateTime  @default(now())
 }
 
 model Balance {
   id             Int       @id @default(autoincrement())
+  name           String
   amount         Int
   users          UserBalance[]
   expenses       Expense[]

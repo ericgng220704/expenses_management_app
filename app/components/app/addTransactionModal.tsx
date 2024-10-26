@@ -25,6 +25,7 @@ type AddTransactionModalProps = {
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
   setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
   setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
+  user: any;
 };
 
 export default function AddTransactionModal({
@@ -35,6 +36,7 @@ export default function AddTransactionModal({
   setExpenses,
   setIncomes,
   setBalance,
+  user,
 }: AddTransactionModalProps) {
   const isExpenseView = view === "Expenses";
   const initCategory = isExpenseView ? "1" : "9";
@@ -68,6 +70,7 @@ export default function AddTransactionModal({
       date,
       note,
       authorizer,
+      balanceId: user.using_balance_id,
     };
 
     try {

@@ -13,7 +13,7 @@ import { Income } from "@/app/types/income";
 import TransactionPage from "./transactionPage";
 import AddTransactionModal from "./addTransactionModal";
 import EditTransactionModal from "./editTransactionModal";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { User } from "@/app/types/user";
 const months = [
   "January",
   "February",
@@ -31,7 +31,11 @@ const months = [
 
 const today = new Date();
 
-export default function App() {
+type AppProp = {
+  user: any;
+};
+
+export default function App({ user }: AppProp) {
   // Both
   const [availableYears, setAvailableYears] = useState([]);
   const [balance, setBalance] = useState<Balance>();
@@ -77,7 +81,9 @@ export default function App() {
   const fetchAll = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/all?view=${view}`);
+      const response = await fetch(
+        `/api/all?view=${view}&balanceId=${user.using_balance_id}`
+      );
 
       const { categories, availableYears, balance } = await response.json();
 
@@ -100,7 +106,9 @@ export default function App() {
       const response = await fetch(
         `/api/${
           view === "Expenses" ? "expenses" : "income"
-        }?selectedMonth=${selectedMonth}&&selectedYear=${selectedYear}`
+        }?selectedMonth=${selectedMonth}&&selectedYear=${selectedYear}&balanceId=${
+          user.using_balance_id
+        }`
       );
       if (view === "Expenses") {
         const { expenses } = await response.json();
@@ -123,7 +131,9 @@ export default function App() {
       setIsLoading(true);
 
       const response = await fetch(
-        `/api/${view === "Expenses" ? "expenses" : "income"}?all=true`
+        `/api/${
+          view === "Expenses" ? "expenses" : "income"
+        }?all=true&balanceId=${user.using_balance_id}`
       );
       if (view === "Expenses") {
         const { expenses } = await response.json();
@@ -303,6 +313,7 @@ export default function App() {
           setExpenses={setExpenses}
           setIncomes={setIncomes}
           setBalance={setBalance}
+          user={user}
         />
       </div>
       {categories && (
@@ -314,6 +325,7 @@ export default function App() {
           setExpenses={setExpenses}
           setIncomes={setIncomes}
           setBalance={setBalance}
+          user={user}
         />
       )}
 
@@ -328,6 +340,7 @@ export default function App() {
           setBalance={setBalance}
           selectedExpense={expenseEditing}
           selectedIncome={incomeEditing}
+          user={user}
         />
       )}
     </div>

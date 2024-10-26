@@ -6,7 +6,6 @@ import prisma from "@/app/lib/prisma";
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the endpoint
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
-  console.log("Reach webhook api");
 
   if (!WEBHOOK_SECRET) {
     throw new Error(
@@ -62,9 +61,7 @@ export async function POST(req: Request) {
           name: `${first_name} ${last_name}`,
         },
       });
-      console.log(`User ${id} added to the database`);
     } catch (error) {
-      console.error("Error adding user to database:", error);
       return new Response("Failed to add user", {
         status: 500,
       });
@@ -81,7 +78,6 @@ export async function POST(req: Request) {
           id,
         },
       });
-      console.log(`User ${id} deleted from the database`);
     } catch (error) {
       console.error("Error deleting user from database:", error);
       return new Response("Failed to delete user", {

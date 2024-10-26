@@ -26,6 +26,7 @@ type TransactionListProps = {
   setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
   setIncomes: React.Dispatch<React.SetStateAction<Income[]>>;
   setBalance: React.Dispatch<React.SetStateAction<Balance | undefined>>;
+  user: any;
 };
 
 type trailingActionsProps = {
@@ -64,6 +65,7 @@ export default function TransactionList({
   setExpenses,
   setIncomes,
   setBalance,
+  user,
 }: TransactionListProps) {
   let transactions;
   const isExpenseView = view === "Expenses";
@@ -83,7 +85,7 @@ export default function TransactionList({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id }),
+          body: JSON.stringify({ id, balanceId: user.using_balance_id }),
         }
       );
 
